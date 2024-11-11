@@ -1,13 +1,15 @@
 import torch
 
 def get_neighbours():
-    with open("data/MARA_imdb_mlh/positives.txt", "r") as input_file:
+    with open("data/imdb_mlh/positives.txt", "r") as input_file:
         layer_1 = []
         layer_2 = []
+
         for line in input_file:
             if line == "MAM MDM\n":
                 continue
             line = line.replace("\n", "").split(" ")
+            
             if(int(line[2]) > 0):
                 layer_1.append([int(line[0]), int(line[1])])
             if(int(line[3]) > 0):
@@ -16,7 +18,7 @@ def get_neighbours():
         return torch.tensor(layer_1), torch.tensor(layer_2)
 
 def get_features():
-    with open("data/MARA_imdb_mlh/features1000.txt", "r") as input_file:
+    with open("data/imdb_mlh/features1000.txt", "r") as input_file:
         features = []
         for line in input_file:
             line = line.replace("\n", "").split(" ")
@@ -24,7 +26,7 @@ def get_features():
         return torch.tensor(features)
     
 def get_classess():
-    with open("data/MARA_imdb_mlh/classes.txt", "r") as input_file:
+    with open("data/imdb_mlh/classes.txt", "r") as input_file:
         classes = torch.full((2807,), -1)
         for line in input_file:
             line = line.replace("\n", "").split(" ")
