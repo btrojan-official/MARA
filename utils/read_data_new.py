@@ -31,7 +31,8 @@ def get_features():
         for line in input_file:
             line = line.replace("\n", "").split(" ")
             features.append(list(map(float,line[2:])))
-        return torch.tensor(features)
+        features = torch.tensor(features)
+        return torch.cat((features,features),dim=0)
     
 def get_classess():
     with open("data/imdb_mlh/classes.txt", "r") as input_file:
@@ -39,7 +40,7 @@ def get_classess():
         for line in input_file:
             line = line.replace("\n", "").split(" ")
             classes[int(line[0])] = int(line[1])
-        return classes
+        return torch.cat((classes,classes),dim=0)
 
 class IMDB_mlh(torch.utils.data.Dataset):
     def __init__(self):
@@ -48,16 +49,8 @@ class IMDB_mlh(torch.utils.data.Dataset):
         self.layer_1, self.layer_2, self.cross_edges = get_neighbours()
         self.classes = get_classess()
 
-        self.num_nodes = self.nodes.shape[0]*2
-        self.num_edges = self.layer_1.shape[0] + self.layer_2.shape[0] + self.cross_edges.shape[0]
-        self.layer_1_num_edges = self.layer_1.shape[0]
-        self.layer_2_num_edges = self.layer_2.shape[0]
-        self.cross_edges_num = self.cross_edges.shape[0]
-        self.num_features = self.node_features.shape[1]
-        self.num_classes = self.classes.unique().shape[0]
-
     def __len__(self):
-        return self.nodes.shape[0]
+        return self.nodes.shape[0]*2
     
     def __getitem__(self, idx):
         return self.node_features[idx], self.classes[idx]
@@ -66,10 +59,23 @@ class IMDB_mlh(torch.utils.data.Dataset):
         random_tensor = torch.rand(self.nodes.shape[0])
         return random_tensor > (1-mask_size)
     
+    def get_number_of_nodes(self):
+        return self.nodes.shape[0]
+    
+    def get_number_of_edges(self):
+        return self.layer_1.shape[0] + self.layer_2.shape[0] + self.cross_edges.shape[0]
+    
+    def get_number_of_features(self):
+        return self.node_features.shape[1]
+    
+    def get_number_of_classes(self):
+        return self.classes.unique().shape[0]
+
     def info(self):
         print(f"IMDB movie type dataset:")
-        print(f" Number of nodes: {self.num_nodes}")
-        print(f" Number of edges: layer1: {self.layer_1_num_edges}, layer2: {self.layer_2_num_edges}, cross_layer: {self.cross_edges_num}")
-        print(f" Number of features: {self.num_features}")
-        print(f" Number of classes: {self.num_classes}")
-        print(f" Number of nodes per class: {torch.bincount(self.classes)*2}")
+        print(f" Number of nodes: {self.get_number_of_nodes()}")
+        print(f" Number of edges: {self.get_number_of_edges()}")
+        print(f" Number of edges: layer1: {self.layer_1.shape[0]}, layer2: {self.layer_2.shape[0]}, cross_layer: {self.cross_edges.shape[0]}")
+        print(f" Number of features: {self.get_number_of_features()}")
+        print(f" Number of classes: {self.get_number_of_classes()}")
+        print(f" Number of nodes per class: {torch.bincount(self.classes)}")
