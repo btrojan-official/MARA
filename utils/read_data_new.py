@@ -56,8 +56,8 @@ class IMDB_mlh(torch.utils.data.Dataset):
         return self.node_features[idx], self.classes[idx]
     
     def get_training_mask(self, mask_size=0.2):
-        random_tensor = torch.rand(self.nodes.shape[0])
-        return random_tensor > (1-mask_size)
+        random_tensor = torch.rand(self.nodes.shape[0]//2)
+        return (random_tensor > (1-mask_size)).repeat(2)
     
     def get_number_of_nodes(self):
         return self.nodes.shape[0]
