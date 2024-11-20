@@ -49,6 +49,8 @@ class IMDB_mlh(torch.utils.data.Dataset):
         self.layer_1, self.layer_2, self.cross_edges = get_neighbours()
         self.classes = get_classess()
 
+        self.device = "cpu"
+
     def __len__(self):
         return self.nodes.shape[0]*2
     
@@ -56,13 +58,10 @@ class IMDB_mlh(torch.utils.data.Dataset):
         return self.node_features[idx], self.classes[idx]
     
     def get_training_mask(self, train_mask_size=0.25, val_mask_size=0.25):
-        random_tensor = torch.rand(self.nodes.shape[0]//2)
-        train_mask = (random_tensor > (1-train_mask_size)).repeat(2)
-        val_mask = torch.logical_and((random_tensor > (1-train_mask_size-val_mask_size)).repeat(2), ~train_mask)
-        test_mask = torch.logical_and(~train_mask,~val_mask)
-
-        print(train_mask.sum(), val_mask.sum(), test_mask.sum())
-        print(train_mask.shape, val_mask.shape, test_mask.shape)
+        random_tensor = torch.rand(self.nodes.shape[0]//2).to(self.device)
+        train_mask = (random_tensor > (1-train_mask_size)).repeat(2).to(self.device)
+        val_mask = torch.logical_and((random_tensor > (1-train_mask_size-val_mask_size)).repeat(2), ~train_mask).to(self.device)
+        test_mask = torch.logical_and(~train_mask,~val_mask).to(self.device)
 
         return train_mask, val_mask, test_mask
 
@@ -86,3 +85,14 @@ class IMDB_mlh(torch.utils.data.Dataset):
         print(f" Number of features: {self.get_number_of_features()}")
         print(f" Number of classes: {self.get_number_of_classes()}")
         print(f" Number of nodes per class: {torch.bincount(self.classes)}")
+
+    def to(self, device):
+        self.device = device
+
+        self.node_features = self.node_features.to(device)
+        self.nodes = self.nodes.to(device)
+        self.layer_1 = self.layer_1.to(device)
+        self.layer_2 = self.layer_2.to(device)
+        self.cross_edges = self.cross_edges.to(device)
+        self.classes = self.classes.to(device)
+        return self
