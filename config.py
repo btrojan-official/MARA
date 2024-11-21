@@ -4,4 +4,5 @@ config = {
     "simplification_strategy":"DE", # ["DE","NS"] (DropEdge/NeuralSparse)
     "DE_p":0.2,
     "NS_k":5,
+    "dropout":0.1
 }

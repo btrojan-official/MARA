@@ -84,7 +84,7 @@ class IMDB_mlh(torch.utils.data.Dataset):
         print(f" Number of edges: layer1: {self.layer_1.shape[0]}, layer2: {self.layer_2.shape[0]}, cross_layer: {self.cross_edges.shape[0]}")
         print(f" Number of features: {self.get_number_of_features()}")
         print(f" Number of classes: {self.get_number_of_classes()}")
-        print(f" Number of nodes per class: {torch.bincount(self.classes)}")
+        print(f" Number of nodes per class: {torch.bincount(self.classes)}\n")
 
     def to(self, device):
         self.device = device
