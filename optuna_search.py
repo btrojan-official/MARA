@@ -16,12 +16,9 @@ imdb.info()
 
 train_mask, val_mask, test_mask = imdb.get_training_mask(train_mask_size=0.25, val_mask_size=0.25)
 
-from torch.utils.tensorboard import SummaryWriter
-
-# Initialize TensorBoard writer
 writer = SummaryWriter(log_dir="./tensorboard_logs")
 
-def train(data, model, criterion, optimizer, epoch):
+def train(data, model, criterion, optimizer, epoch, trial_number):
     model.train()
     optimizer.zero_grad()
 
@@ -37,10 +34,9 @@ def train(data, model, criterion, optimizer, epoch):
     train_score = roc_auc(out[train_mask], data.classes[train_mask])
     val_score = roc_auc(out[val_mask], data.classes[val_mask])
 
-    # Log metrics to TensorBoard
-    writer.add_scalar("Loss/train", train_loss.item(), epoch)
-    writer.add_scalar("ROC-AUC/train", train_score, epoch)
-    writer.add_scalar("ROC-AUC/val", val_score, epoch)
+    writer.add_scalar(f"Trial {trial_number}/Loss/train", train_loss.item(), epoch)
+    writer.add_scalar(f"Trial {trial_number}/ROC-AUC/train", train_score, epoch)
+    writer.add_scalar(f"Trial {trial_number}/ROC-AUC/val", val_score, epoch)
 
     return train_loss.item(), train_score, val_score
 
@@ -70,9 +66,8 @@ def objective(trial):
         "best_weights": None
     }
 
-    # Training loop
     for epoch in range(251):
-        train_loss, train_score, val_score = train(imdb, mara, crit, optim, epoch)
+        train_loss, train_score, val_score = train(imdb, mara, crit, optim, epoch, trial.number)
 
         if val_score > early_stopping["best_val_score"]:
             early_stopping = {
@@ -89,25 +84,31 @@ def objective(trial):
 
     mara.load_state_dict(early_stopping["best_weights"])
 
-    # Log best validation score for the trial
-    writer.add_scalar("Best ROC-AUC/val", early_stopping["best_val_score"], trial.number)
+    trial_number = trial.number
+    writer.add_scalar(f"Trial {trial_number}/Best ROC-AUC/val", early_stopping["best_val_score"], trial_number)
+    for param_name, param_value in params.items():
+        writer.add_text(f"Trial {trial_number}/Params", f"{param_name}: {param_value}", trial_number)
 
     return early_stopping["best_val_score"]
 
-# Run optimization
 study = optuna.create_study(direction="maximize")
-study.optimize(objective, n_trials=50)
+study.optimize(objective, n_trials=5)
 
-# Log best trial details to TensorBoard
-trial = study.best_trial
-writer.add_text("Best trial", f"Value: {trial.value}\nParams: {trial.params}")
+best_trial = study.best_trial
+writer.add_text("Best Trial/Value", f"Best ROC-AUC: {best_trial.value}")
+for param_name, param_value in best_trial.params.items():
+    writer.add_text(f"Best Trial/Params", f"{param_name}: {param_value}")
+
+for trial in study.trials:
+    trial_number = trial.number
+    writer.add_scalar(f"All Trials/Best ROC-AUC", trial.value, trial_number)
+    for param_name, param_value in trial.params.items():
+        writer.add_text(f"All Trials/Params {trial_number}", f"{param_name}: {param_value}")
 
 print("Best trial:")
-print(f"  Value: {trial.value}")
+print(f"  Value: {best_trial.value}")
 print("  Params: ")
-for key, value in trial.params.items():
+for key, value in best_trial.params.items():
     print(f"    {key}: {value}")
 
-# Close the TensorBoard writer
 writer.close()
-
