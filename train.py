@@ -81,12 +81,12 @@ for epoch in range(251):
     else:
         early_stopping["counter"] += 1
 
-    if early_stopping["counter"] >= early_stopping["patience"]:
-        print(f"Early stopping at epoch {epoch+1}")
-        break
-
     if (epoch + 1) % 5 == 0:
         print(f"Epoch {epoch+1} | Loss: {train_loss:.4f} | Train AUC: {train_score:.4f} | Val AUC: {val_score:.4f}")
+
+    if early_stopping["counter"] >= early_stopping["patiWence"]:
+        print(f"Early stopping at epoch {epoch+1}")
+        break
 
     writer.add_hparams(
         params,

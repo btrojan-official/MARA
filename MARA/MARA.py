@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torch_geometric.nn import GCNConv
 from MARA.DropEdge import DropEdge
+from MARA.NeuralSparse import NeuralSparse
 from config import config
 
 class MARA(nn.Module):
@@ -21,36 +22,67 @@ class MARA(nn.Module):
         self.classifier = nn.Linear(52, 3)
         self.ReLU = torch.nn.ReLU6()
 
-        self.dropout = torch.nn.Dropout(dropout) # ręcznie sprawdziłem dropout 0.1, 0.2 i 0.3 i żaden nie zwiększa wyniku
+        self.dropout = torch.nn.Dropout(dropout)
 
         self.dropedge = DropEdge(self.simplification_type, self.DE_p)
 
-    def forward(self, x, edges, layers_lengths):
-        if self.simplification_stages == "once":
-            edges, layers_lengths = self.dropedge(edges, layers_lengths)
-            h = self.conv1(x, edges)
-            h = self.dropout(h)
-            h = self.ReLU(h)
-            h = self.conv2(h, edges)
-            h = self.dropout(h)
-            h = self.ReLU(h)
-            h = self.conv3(h, edges)
-            h = self.dropout(h)
-            h = self.ReLU(h)
+        self.neuralsparse_1 = NeuralSparse(self.simplification_type, self.DE_p) # self.NS_k
+        self.neuralsparse_2 = NeuralSparse(self.simplification_type, self.DE_p) # self.NS_k
+        self.neuralsparse_3 = NeuralSparse(self.simplification_type, self.DE_p) # self.NS_k
 
-        if self.simplification_stages == "each":
-            edges, layers_lengths = self.dropedge(edges, layers_lengths)
-            h = self.conv1(x, edges)
-            h = self.dropout(h)
-            h = self.ReLU(h)
-            edges, layers_lengths = self.dropedge(edges, layers_lengths)
-            h = self.conv2(h, edges)
-            h = self.dropout(h)
-            h = self.ReLU(h)
-            edges, layers_lengths = self.dropedge(edges, layers_lengths)
-            h = self.conv3(h, edges)
-            h = self.dropout(h)
-            h = self.ReLU(h)
+    def forward(self, x, edges, layers_lengths):
+        if self.simplification_strategy == "DE":
+            if self.simplification_stages == "once":
+                edges, layers_lengths = self.dropedge(edges, layers_lengths)
+                h = self.conv1(x, edges)
+                h = self.dropout(h)
+                h = self.ReLU(h)
+                h = self.conv2(h, edges)
+                h = self.dropout(h)
+                h = self.ReLU(h)
+                h = self.conv3(h, edges)
+                h = self.dropout(h)
+                h = self.ReLU(h)
+
+            if self.simplification_stages == "each":
+                edges, layers_lengths = self.dropedge(edges, layers_lengths)
+                h = self.conv1(x, edges)
+                h = self.dropout(h)
+                h = self.ReLU(h)
+                edges, layers_lengths = self.dropedge(edges, layers_lengths)
+                h = self.conv2(h, edges)
+                h = self.dropout(h)
+                h = self.ReLU(h)
+                edges, layers_lengths = self.dropedge(edges, layers_lengths)
+                h = self.conv3(h, edges)
+                h = self.dropout(h)
+                h = self.ReLU(h)
+
+        if self.simplification_strategy == "NS":
+            if self.simplification_stages == "once":
+                edges, layers_lengths = self.neuralsparse_1(x, edges, layers_lengths)
+                h = self.conv1(x, edges)
+                h = self.dropout(h)
+                h = self.ReLU(h)
+                h = self.conv2(h, edges)
+                h = self.dropout(h)
+                h = self.ReLU(h)
+                h = self.conv3(h, edges)
+                h = self.dropout(h)
+                h = self.ReLU(h)
+
+            if self.simplification_stages == "each":
+                edges, layers_lengths = self.neuralsparse_1(x, edges, layers_lengths)
+                h = self.conv1(x, edges)
+                h = self.dropout(h)
+                h = self.ReLU(h)
+                edges, layers_lengths = self.neuralsparse_2(x, edges, layers_lengths)
+                h = self.conv2(h, edges)
+                h = self.dropout(h)
+                h = self.ReLU(h)
+                edges, layers_lengths = self.neuralsparse_3(x, edges, layers_lengths)
+                h = self.conv3(h, edges)
+                h = self.dropout(h)
 
         out = torch.sigmoid(self.classifier(h))
 
