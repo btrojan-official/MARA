@@ -34,4 +34,6 @@ class DropEdge(nn.Module):
                 new_layers_lenghts.append(torch.sum(mask[temp:temp + layers_lengths[i]]))
                 temp += layers_lengths[i]
 
+            print(edges.shape)
+
             return edges, torch.tensor(new_layers_lenghts)

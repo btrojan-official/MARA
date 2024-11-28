@@ -7,15 +7,6 @@ from MARA.MARA import MARA
 
 from config import config
 
-params = {
-    "simplification_type":config["simplification_type"],
-    "simplification_stages":config["simplification_stages"],
-    "DE_p":config["DE_p"],
-    "lr":2e-3,
-    "weight_decay":0.0005,
-    "dropout":config["dropout"]
-    }
-
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Working on device: ", device)
 
@@ -68,9 +59,9 @@ early_stopping = {
     "best_weights": None
 }
 
-mara = MARA(simplification_type=params["simplification_type"], simplification_stages=params["simplification_stages"], DE_p=params["DE_p"], dropout=params["dropout"]).to(device)
+mara = MARA().to(device)
 crit = torch.nn.CrossEntropyLoss()
-optim = torch.optim.Adam(mara.parameters(), lr=params["lr"], weight_decay=params["weight_decay"])
+optim = torch.optim.Adam(mara.parameters(), lr=0.002, weight_decay=0.0005)
 
 print("STARTING TRAINING:")
 for epoch in range(251):
@@ -84,12 +75,12 @@ for epoch in range(251):
     if (epoch + 1) % 5 == 0:
         print(f"Epoch {epoch+1} | Loss: {train_loss:.4f} | Train AUC: {train_score:.4f} | Val AUC: {val_score:.4f}")
 
-    if early_stopping["counter"] >= early_stopping["patiWence"]:
+    if early_stopping["counter"] >= early_stopping["patience"]:
         print(f"Early stopping at epoch {epoch+1}")
         break
 
     writer.add_hparams(
-        params,
+        config,
         {"val_score": val_score, "train_score": train_score, "loss": train_loss, "epoch": epoch+1},
     )
 
