@@ -93,7 +93,7 @@ def objective(trial):
     return early_stopping["best_val_score"]
 
 study = optuna.create_study(direction="maximize")
-study.optimize(objective, n_trials=10)
+study.optimize(objective, n_trials=3)
 
 vis.plot_optimization_history(study)
 vis.plot_param_importances(study)

@@ -10,5 +10,5 @@ config = {
     "lr":1.5e-3,
     "weight_decay":4e-4,
     "epoch_num": 250,
-    "patience": 50
+    "patience": 30
 }
