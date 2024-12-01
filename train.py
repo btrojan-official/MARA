@@ -3,6 +3,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from utils.metrices import roc_auc
 from utils.read_data import IMDB_mlh
+from utils.graph_info import graph_info
 from MARA.MARA import MARA
 
 from config import config
@@ -22,7 +23,7 @@ def train(data, model, criterion, optimizer):
     edges = torch.cat([data.layer_1, data.layer_2, data.cross_edges], dim=0).t()
     layers_lengths = torch.tensor([data.layer_1.shape[0], data.layer_2.shape[0], data.cross_edges.shape[0]], dtype=torch.int64)
 
-    out, h = model(data.node_features, edges, layers_lengths)
+    out, _, _ = model(data.node_features, edges, layers_lengths)
 
     train_loss = criterion(out[train_mask], data.classes[train_mask])
     train_loss.backward()
@@ -36,10 +37,14 @@ def train(data, model, criterion, optimizer):
 def evaluate(data, model, mask):
     model.eval()
     with torch.no_grad():
+        graph_info(data.classes, torch.cat([data.layer_1, data.layer_2, data.cross_edges], dim=0), [data.layer_1.shape[0], data.layer_2.shape[0], data.cross_edges.shape[0]])
+        
         edges = torch.cat([data.layer_1, data.layer_2, data.cross_edges], dim=0).t()
         layers_lengths = torch.tensor([data.layer_1.shape[0], data.layer_2.shape[0], data.cross_edges.shape[0]], dtype=torch.int64)
 
-        out, h = model(data.node_features, edges, layers_lengths)
+        out, edges, layers_lengths = model(data.node_features, edges, layers_lengths)
+
+        graph_info(data.classes, edges, layers_lengths)
 
         score = roc_auc(out[mask], data.classes[mask])
     return score
@@ -54,17 +59,17 @@ writer = SummaryWriter()
 
 early_stopping = {
     "best_val_score": 0,
-    "patience": 50,
+    "patience": config["patience"],
     "counter": 0,
     "best_weights": None
 }
 
 mara = MARA().to(device)
 crit = torch.nn.CrossEntropyLoss()
-optim = torch.optim.Adam(mara.parameters(), lr=0.002, weight_decay=0.0005)
+optim = torch.optim.Adam(mara.parameters(), lr=config["lr"], weight_decay=config["weight_decay"])
 
 print("STARTING TRAINING:")
-for epoch in range(251):
+for epoch in range(config["epoch_num"]):
     train_loss, train_score, val_score = train(imdb, mara, crit, optim)
 
     if val_score > early_stopping["best_val_score"]:

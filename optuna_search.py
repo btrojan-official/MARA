@@ -1,5 +1,6 @@
 import torch
 import optuna
+import optuna.visualization as vis
 from torch.utils.tensorboard import SummaryWriter
 
 from utils.metrices import roc_auc
@@ -25,7 +26,7 @@ def train(data, model, criterion, optimizer, epoch, trial_number):
     edges = torch.cat([data.layer_1, data.layer_2, data.cross_edges], dim=0).t()
     layers_lengths = torch.tensor([data.layer_1.shape[0], data.layer_2.shape[0], data.cross_edges.shape[0]], dtype=torch.int64)
 
-    out, h = model(data.node_features, edges, layers_lengths)
+    out, _, _ = model(data.node_features, edges, layers_lengths)
 
     train_loss = criterion(out[train_mask], data.classes[train_mask])
     train_loss.backward()
@@ -61,7 +62,7 @@ def objective(trial):
 
     early_stopping = {
         "best_val_score": 0,
-        "patience": 50,
+        "patience": 15,
         "counter": 0,
         "best_weights": None
     }
@@ -92,7 +93,11 @@ def objective(trial):
     return early_stopping["best_val_score"]
 
 study = optuna.create_study(direction="maximize")
-study.optimize(objective, n_trials=5)
+study.optimize(objective, n_trials=10)
+
+vis.plot_optimization_history(study)
+vis.plot_param_importances(study)
+vis.plot_slice(study)
 
 best_trial = study.best_trial
 writer.add_text("Best Trial/Value", f"Best ROC-AUC: {best_trial.value}")
