@@ -37,7 +37,7 @@ def train(data, model, criterion, optimizer):
 def evaluate(data, model, mask):
     model.eval()
     with torch.no_grad():
-        graph_info(data.classes, torch.cat([data.layer_1, data.layer_2, data.cross_edges], dim=0), [data.layer_1.shape[0], data.layer_2.shape[0], data.cross_edges.shape[0]])
+        graph_info(data.classes, torch.cat([data.layer_1, data.layer_2, data.cross_edges], dim=0).t(), [data.layer_1.shape[0], data.layer_2.shape[0], data.cross_edges.shape[0]])
         
         edges = torch.cat([data.layer_1, data.layer_2, data.cross_edges], dim=0).t()
         layers_lengths = torch.tensor([data.layer_1.shape[0], data.layer_2.shape[0], data.cross_edges.shape[0]], dtype=torch.int64)
@@ -91,7 +91,9 @@ for epoch in range(config["epoch_num"]):
 
 mara.load_state_dict(early_stopping["best_weights"])
 
+print("===== TEST: =====")
 test_score = evaluate(imdb, mara, test_mask)
+print("===== WHOLE: =====")
 whole_score = evaluate(imdb, mara, slice(None))
 print(f"Final Test AUC: {test_score:.4f} | Whole Dataset AUC: {whole_score:.4f}")
 
