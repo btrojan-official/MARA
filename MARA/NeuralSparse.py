@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class NeuralSparse(nn.Module):
-    def __init__(self, simplification_type="l-b-l", k=5, input_dim=2000, hidden_dim=128, tau_start=1.0, tau_end=0.1, anneal_steps=1000):
+    def __init__(self, simplification_type="l-b-l", k=5, node_features=2000, hidden_dim=128, tau_start=1.0, tau_end=0.1, anneal_steps=1000):
         super().__init__()
         self.simplification_type = simplification_type
         self.k = k
@@ -12,9 +12,8 @@ class NeuralSparse(nn.Module):
         self.anneal_steps = anneal_steps
         self.step = 0  # Step counter for temperature annealing
 
-        # Define the multi-layer perceptron (MLP) for computing edge scores
         self.mlp = nn.Sequential(
-            nn.Linear(input_dim * 2 + 1, hidden_dim),  # Combine node features and edge features
+            nn.Linear(node_features * 2, hidden_dim),  # Combined node features
             nn.ReLU(),
             nn.Linear(hidden_dim, 1)
         )
@@ -26,18 +25,18 @@ class NeuralSparse(nn.Module):
         tau = self.tau_start + progress * (self.tau_end - self.tau_start)
         return tau
 
-    def forward(self, node_features, edges, adjacency_matrix):
+    def forward(self, node_features, edges, layer_lengths):
         """
         Args:
             node_features: Tensor of shape (N, F) where N is the number of nodes, F is the feature dimension.
             edges: List of edges (u, v) representing connections in the graph.
-            adjacency_matrix: Tensor of shape (N, N) representing edge features (e.g., weights).
         
         Returns:
             selected_edges: List of sampled edges after sparsification.
         """
+
         if self.simplification_type == "l-b-l":
-            return edges, adjacency_matrix
+            return edges
 
         selected_edges = []
 

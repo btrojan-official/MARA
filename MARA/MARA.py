@@ -52,18 +52,18 @@ class MARA(nn.Module):
                 edges, layers_lengths = self.dropedge(edges, layers_lengths)
                 h = self.ReLU(self.dropout(self.conv3(h, edges)))
 
-        # elif self.simplification_strategy == "NS":
-        #     if self.simplification_stages == "once":
-        #         edges, layers_lengths = self.neuralsparse_1(x, edges, layers_lengths)
-        #         h = self.conv1(x, edges)
-        #         h = self.dropout(h)
-        #         h = self.ReLU(h)
-        #         h = self.conv2(h, edges)
-        #         h = self.dropout(h)
-        #         h = self.ReLU(h)
-        #         h = self.conv3(h, edges)
-        #         h = self.dropout(h)
-        #         h = self.ReLU(h)
+        elif self.simplification_strategy == "NS":
+            if self.simplification_stages == "once":
+                edges, layers_lengths = self.neuralsparse_1(x, edges, layers_lengths)
+                h = self.conv1(x, edges)
+                h = self.dropout(h)
+                h = self.ReLU(h)
+                h = self.conv2(h, edges)
+                h = self.dropout(h)
+                h = self.ReLU(h)
+                h = self.conv3(h, edges)
+                h = self.dropout(h)
+                h = self.ReLU(h)
 
         #     if self.simplification_stages == "each":
         #         edges, layers_lengths = self.neuralsparse_1(x, edges, layers_lengths)
