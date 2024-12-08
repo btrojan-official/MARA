@@ -20,10 +20,10 @@ def train(data, model, criterion, optimizer):
     model.train()
     optimizer.zero_grad()
 
-    edges = torch.cat([data.layer_1, data.layer_2, data.cross_edges], dim=0).t()
-    layers_lengths = torch.tensor([data.layer_1.shape[0], data.layer_2.shape[0], data.cross_edges.shape[0]], dtype=torch.int64)
+    intra_layer_edges = [data.layer_1, data.layer_2]
+    cross_layer_edges = [data.cross_edges]
 
-    out, _, _ = model(data.node_features, edges, layers_lengths)
+    out, _, _ = model(data.node_features, intra_layer_edges, cross_layer_edges)
 
     train_loss = criterion(out[train_mask], data.classes[train_mask])
     train_loss.backward()
@@ -37,14 +37,14 @@ def train(data, model, criterion, optimizer):
 def evaluate(data, model, mask):
     model.eval()
     with torch.no_grad():
-        graph_info(data.classes, torch.cat([data.layer_1, data.layer_2, data.cross_edges], dim=0).t(), [data.layer_1.shape[0], data.layer_2.shape[0], data.cross_edges.shape[0]])
+        graph_info(data.classes, [data.layer_1, data.layer_2], [data.cross_edges])
         
-        edges = torch.cat([data.layer_1, data.layer_2, data.cross_edges], dim=0).t()
-        layers_lengths = torch.tensor([data.layer_1.shape[0], data.layer_2.shape[0], data.cross_edges.shape[0]], dtype=torch.int64)
+        intra_layer_edges = [data.layer_1, data.layer_2]
+        cross_layer_edges = [data.cross_edges]
 
-        out, edges, layers_lengths = model(data.node_features, edges, layers_lengths)
+        out, intra_layer_edges, cross_layer_edges = model(data.node_features, intra_layer_edges, cross_layer_edges)
 
-        graph_info(data.classes, edges, layers_lengths)
+        graph_info(data.classes, intra_layer_edges, cross_layer_edges)
 
         score = roc_auc(out[mask], data.classes[mask])
     return score

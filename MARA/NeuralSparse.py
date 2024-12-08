@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class NeuralSparse(nn.Module):
-    def __init__(self, simplification_type="l-b-l", k=5, node_features=2000, hidden_dim=128, tau_start=1.0, tau_end=0.1, anneal_steps=1000):
+    def __init__(self, simplification_type="l-b-l", k=5, input_dim=1000, hidden_dim=128, tau_start=1.0, tau_end=0.1, anneal_steps=1000):
         super().__init__()
         self.simplification_type = simplification_type
         self.k = k
@@ -13,7 +13,7 @@ class NeuralSparse(nn.Module):
         self.step = 0  # Step counter for temperature annealing
 
         self.mlp = nn.Sequential(
-            nn.Linear(node_features * 2, hidden_dim),  # Combined node features
+            nn.Linear(input_dim * 2, hidden_dim),  # Combined node features
             nn.ReLU(),
             nn.Linear(hidden_dim, 1)
         )

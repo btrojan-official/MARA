@@ -30,27 +30,27 @@ class MARA(nn.Module):
 
         self.dropedge = DropEdge(self.simplification_type, self.DE_p)
 
-        self.neuralsparse_1 = NeuralSparse(self.simplification_type, self.DE_p) # self.NS_k
-        self.neuralsparse_2 = NeuralSparse(self.simplification_type, self.DE_p) # self.NS_k
-        self.neuralsparse_3 = NeuralSparse(self.simplification_type, self.DE_p) # self.NS_k
+        self.neuralsparse_1 = NeuralSparse(self.simplification_type, self.NS_k)
+        self.neuralsparse_2 = NeuralSparse(self.simplification_type, self.NS_k)
+        self.neuralsparse_3 = NeuralSparse(self.simplification_type, self.NS_k)
 
-    def forward(self, x, edges, layers_lengths):
+    def forward(self, x, intra_layer_edges, cross_layer_edges):
 
         # layer lengths are numbers of edges in each layer starting from layer 0 and last element is number of cross-layer edges
         if self.simplification_strategy == "DE":
             if self.simplification_stages == "once":
-                edges, layers_lengths = self.dropedge(edges, layers_lengths)
-                h = self.ReLU(self.dropout(self.conv1(x, edges)))
-                h = self.ReLU(self.dropout(self.conv2(h, edges)))
-                h = self.ReLU(self.dropout(self.conv3(h, edges)))
+                intra_layer_edges, cross_layer_edges = self.dropedge(intra_layer_edges, cross_layer_edges)
+                h = self.ReLU(self.dropout(self.conv1(x, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T)))
+                h = self.ReLU(self.dropout(self.conv2(h, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T)))
+                h = self.ReLU(self.dropout(self.conv3(h, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T)))
 
             if self.simplification_stages == "each":
-                edges, layers_lengths = self.dropedge(edges, layers_lengths)
-                h = self.ReLU(self.dropout(self.conv1(x, edges)))
-                edges, layers_lengths = self.dropedge(edges, layers_lengths)
-                h = self.ReLU(self.dropout(self.conv2(h, edges)))
-                edges, layers_lengths = self.dropedge(edges, layers_lengths)
-                h = self.ReLU(self.dropout(self.conv3(h, edges)))
+                intra_layer_edges, cross_layer_edges = self.dropedge(intra_layer_edges, cross_layer_edges)
+                h = self.ReLU(self.dropout(self.conv1(x, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T)))
+                intra_layer_edges, cross_layer_edges = self.dropedge(intra_layer_edges, cross_layer_edges)
+                h = self.ReLU(self.dropout(self.conv2(h, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T)))
+                intra_layer_edges, cross_layer_edges = self.dropedge(intra_layer_edges, cross_layer_edges)
+                h = self.ReLU(self.dropout(self.conv3(h, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T)))
 
         elif self.simplification_strategy == "NS":
             if self.simplification_stages == "once":
@@ -80,7 +80,7 @@ class MARA(nn.Module):
 
         out = torch.sigmoid(self.classifier(h))
 
-        return out, edges, layers_lengths
+        return out, intra_layer_edges, cross_layer_edges
 
 model = MARA()
 print(model)

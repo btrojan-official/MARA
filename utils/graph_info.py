@@ -2,7 +2,12 @@ import torch
 
 from utils.draw_multilayer_graph import draw_multilayer_graph
 
-def graph_info(node_classes, edges, layer_lengths):
+def graph_info(node_classes, intra_edges, cross_edges):
+    edges_per_layer = [intra_edges[i].shape[0] for i in range(len(intra_edges))]
+    edges_cross_layer = [cross_edges[i].shape[0] for i in range(len(cross_edges))]
+    layer_lengths = edges_per_layer + edges_cross_layer
+    edges = torch.cat(intra_edges + cross_edges, dim=0).T
+
     classes = node_classes.unique()
 
     edges_connecting_classes = [
@@ -23,9 +28,9 @@ def graph_info(node_classes, edges, layer_lengths):
     print("\n====== GRAPH INFO ======")
     print(f"Number of nodes: {node_classes.shape[0]}")
     print(f"Number of edges: {edges.shape[1]}")
-    print(f"Number of layers: {len(layer_lengths) - 1}")
-    print(f"Number of edges per layer: {layer_lengths[:-1]}")
-    print(f"Number of cross-layers edges: {layer_lengths[-1]}")
+    print(f"Number of layers: {len(edges_per_layer)}")
+    print(f"Number of edges per layer: {edges_per_layer}")
+    print(f"Number of cross-layers edges: {edges_cross_layer}")
     print(f"Number of nodes per class: {torch.bincount(node_classes)}")
     print(f"Number of edges connecting classes: {edges_connecting_classes}")
     print(f"Average node degree: {edges.shape[1] / node_classes.shape[0]:.2f}")
