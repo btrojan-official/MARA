@@ -7,7 +7,6 @@ from MARA.NeuralSparse import NeuralSparse
 
 from config import config
 
-
 class MARA(nn.Module):
     def __init__(self, simplification_type=config["simplification_type"], simplification_stages=config["simplification_stages"], simplification_strategy=config["simplification_strategy"], DE_p=config["DE_p"], NS_k=config["NS_k"], dropout=config["dropout"], input_dim=config["input_dim"]):
         super().__init__()
@@ -54,29 +53,10 @@ class MARA(nn.Module):
 
         elif self.simplification_strategy == "NS":
             if self.simplification_stages == "once":
-                edges, layers_lengths = self.neuralsparse_1(x, edges, layers_lengths)
-                h = self.conv1(x, edges)
-                h = self.dropout(h)
-                h = self.ReLU(h)
-                h = self.conv2(h, edges)
-                h = self.dropout(h)
-                h = self.ReLU(h)
-                h = self.conv3(h, edges)
-                h = self.dropout(h)
-                h = self.ReLU(h)
-
-        #     if self.simplification_stages == "each":
-        #         edges, layers_lengths = self.neuralsparse_1(x, edges, layers_lengths)
-        #         h = self.conv1(x, edges)
-        #         h = self.dropout(h)
-        #         h = self.ReLU(h)
-        #         edges, layers_lengths = self.neuralsparse_2(x, edges, layers_lengths)
-        #         h = self.conv2(h, edges)
-        #         h = self.dropout(h)
-        #         h = self.ReLU(h)
-        #         edges, layers_lengths = self.neuralsparse_3(x, edges, layers_lengths)
-        #         h = self.conv3(h, edges)
-        #         h = self.dropout(h)
+                intra_layer_edges, cross_layer_edges = self.neuralsparse_1(x, intra_layer_edges, cross_layer_edges)
+                h = self.ReLU(self.dropout(self.conv1(x, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T)))
+                h = self.ReLU(self.dropout(self.conv2(h, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T)))
+                h = self.ReLU(self.dropout(self.conv3(h, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T)))
 
         out = torch.sigmoid(self.classifier(h))
 
