@@ -13,10 +13,17 @@ class NeuralSparse(nn.Module):
             nn.Linear(input_dim * 2, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, 1)
-        ) # upewnij się, że mlp się uczy!
+        )
 
     def forward(self, x, intra_layer_edges, cross_layer_edges, node_layers):
         # muszis cały kod zrefaktoryzować tak, by node_layers zwracała klasa datasetu oraz by odpowiednio wrzucać to do MARY
+
+        # sprawdź l-b-l, czy działa poprawnie
+
+        # To check if weights are being trained
+        # for idx, layer in enumerate(self.mlp):
+        #     if isinstance(layer, nn.Linear): 
+        #         print(f"Layer {idx} weights: {layer.weight.data[0,:10]}")
 
         node_edge_map = {}
         node_edge_map = self.add_edges(intra_layer_edges, node_edge_map)
@@ -64,11 +71,11 @@ class NeuralSparse(nn.Module):
 
         for i in range(len(new_intra_layer_edges)):
             new_intra_layer_edges[i] = torch.tensor(new_intra_layer_edges[i]).to(x.device)
-            intra_layer_weights[i] = torch.tensor(intra_layer_weights[i]).to(x.device)
-        
-        # return intra_layer_edges, cross_layer_edges
-        return new_intra_layer_edges, [torch.tensor(new_cross_layer_edges).to(x.device)], intra_layer_weights, [torch.tensor(cross_layer_weights).to(x.device)]
+            intra_layer_weights[i] = torch.stack(intra_layer_weights[i]).to(x.device)
     
+        if self.simplification_type == "multilayer":
+            return new_intra_layer_edges, [torch.tensor(new_cross_layer_edges).to(x.device)], intra_layer_weights, [torch.tensor(cross_layer_weights).to(x.device)]
+        return new_intra_layer_edges, cross_layer_edges, intra_layer_weights, torch.ones((cross_layer_weights[0]))
     def add_edges(self,edge_list, node_edge_map):
         for edge_tensor in edge_list:
             for edge in edge_tensor:
