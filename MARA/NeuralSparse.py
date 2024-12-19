@@ -39,10 +39,10 @@ class NeuralSparse(nn.Module):
                 edge_score = self.mlp(torch.cat((x[edge[0],:], x[edge[1],:]), dim=0))
                 node_scores.append(edge_score)
 
-            gumbel_softmax_weights = F.gumbel_softmax(torch.cat(node_scores, dim=0), tau=self.tau, hard=True)
+            gumbel_softmax_weights = F.gumbel_softmax(torch.cat(node_scores, dim=0), tau=self.tau, hard=True).to(x.device)
             for _ in range(self.k-1):
                 # dodaj tutaj maskowanie wcześniej wybranych node-ów
-                gumbel_softmax_weights += F.gumbel_softmax(torch.cat(node_scores, dim=0), tau=self.tau, hard=True)
+                gumbel_softmax_weights += F.gumbel_softmax(torch.cat(node_scores, dim=0), tau=self.tau, hard=True).to(x.device)
 
             node_weights[node] = {
                 "scores": gumbel_softmax_weights,
@@ -51,9 +51,12 @@ class NeuralSparse(nn.Module):
 
         # make it return list of tensors (each one is layer or cross-layer edges between two layers)
 
-        new_intra_layer_edges = []
+        layers_ids = torch.unique(node_layers, sorted=True)
+        num_of_layers = layers_ids.shape[0]
+
+        new_intra_layer_edges = [[] for _ in range(num_of_layers)]
         new_cross_layer_edges = []
-        intra_layer_weights = []
+        intra_layer_weights = [[] for _ in range(num_of_layers)]
         cross_layer_weights = []
         
         for node in node_weights.keys():
@@ -62,14 +65,20 @@ class NeuralSparse(nn.Module):
                 edge_score = node_weights[node]["scores"][i]
 
                 if(node_layers[edge[0]] == node_layers[edge[1]]):
-                    new_intra_layer_edges.append(edge)
-                    intra_layer_weights.append(edge_score)
+                    id = torch.where(node_layers[edge[0]] == layers_ids)[0]
+
+                    new_intra_layer_edges[id].append(edge)
+                    intra_layer_weights[id].append(edge_score)
                 else:
                     new_cross_layer_edges.append(edge)
                     cross_layer_weights.append(edge_score)
+
+        for i in range(len(new_intra_layer_edges)):
+            new_intra_layer_edges[i] = torch.tensor(new_intra_layer_edges[i]).to(x.device)
+            intra_layer_weights[i] = torch.cat(intra_layer_weights[i])
         
         # return intra_layer_edges, cross_layer_edges
-        return new_intra_layer_edges, new_cross_layer_edges, intra_layer_weights, cross_layer_weights
+        return new_intra_layer_edges, [torch.tensor(new_cross_layer_edges)], intra_layer_weights, [torch.tensor(cross_layer_weights)]
     
     def add_edges(self,edge_list, node_edge_map):
         for edge_tensor in edge_list:

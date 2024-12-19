@@ -54,9 +54,9 @@ class MARA(nn.Module):
         elif self.simplification_strategy == "NS":
             if self.simplification_stages == "once":
                 intra_layer_edges, cross_layer_edges, intra_layer_weights, cross_layer_weights = self.neuralsparse_1(x, intra_layer_edges, cross_layer_edges, torch.cat((torch.zeros(len(x)//2), torch.ones(len(x)//2))).to(x.device))
-                h = self.ReLU(self.dropout(self.conv1(x, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T, edge_weights=torch.cat(intra_layer_weights + cross_layer_weights, dim=0).T)))
-                h = self.ReLU(self.dropout(self.conv2(h, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T, edge_weights=torch.cat(intra_layer_weights + cross_layer_weights, dim=0).T)))
-                h = self.ReLU(self.dropout(self.conv3(h, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T, edge_weights=torch.cat(intra_layer_weights + cross_layer_weights, dim=0).T)))
+                h = self.ReLU(self.dropout(self.conv1(x, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T, edge_weight=torch.cat(intra_layer_weights + cross_layer_weights, dim=0).T)))
+                h = self.ReLU(self.dropout(self.conv2(h, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T, edge_weight=torch.cat(intra_layer_weights + cross_layer_weights, dim=0).T)))
+                h = self.ReLU(self.dropout(self.conv3(h, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T, edge_weight=torch.cat(intra_layer_weights + cross_layer_weights, dim=0).T)))
 
         out = torch.sigmoid(self.classifier(h))
 
