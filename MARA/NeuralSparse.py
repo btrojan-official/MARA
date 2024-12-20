@@ -18,7 +18,7 @@ class NeuralSparse(nn.Module):
     def forward(self, x, intra_layer_edges, cross_layer_edges, node_layers):
         # muszis cały kod zrefaktoryzować tak, by node_layers zwracała klasa datasetu oraz by odpowiednio wrzucać to do MARY
 
-        # sprawdź l-b-l, czy działa poprawnie
+        # upewnij się jak sobie radzi z pustymi edgami
 
         # To check if weights are being trained
         # for idx, layer in enumerate(self.mlp):
@@ -75,7 +75,7 @@ class NeuralSparse(nn.Module):
     
         if self.simplification_type == "multilayer":
             return new_intra_layer_edges, [torch.tensor(new_cross_layer_edges).to(x.device)], intra_layer_weights, [torch.tensor(cross_layer_weights).to(x.device)]
-        return new_intra_layer_edges, cross_layer_edges, intra_layer_weights, torch.ones((cross_layer_weights[0]))
+        return new_intra_layer_edges, cross_layer_edges, intra_layer_weights, [torch.ones((cross_layer_edges[0].shape[0])).to(x.device)]
     def add_edges(self,edge_list, node_edge_map):
         for edge_tensor in edge_list:
             for edge in edge_tensor:

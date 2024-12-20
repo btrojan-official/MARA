@@ -60,6 +60,15 @@ class MARA(nn.Module):
 
         out = torch.sigmoid(self.classifier(h))
 
+        if self.simplification_strategy == "NS":
+            intra_layer_masked = []
+            cross_layer_masked = [cross_layer_edges[0][cross_layer_weights[0].bool()]]
+
+            for i in range(len(intra_layer_edges)):
+                intra_layer_masked.append(intra_layer_edges[i][intra_layer_weights[i].bool()])
+
+            return out, intra_layer_masked, cross_layer_masked
+        
         return out, intra_layer_edges, cross_layer_edges
 
 model = MARA()

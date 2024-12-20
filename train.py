@@ -9,7 +9,7 @@ from MARA.MARA import MARA
 from config import config
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-print("Working on device: ", device)
+print("Working on device: " + device + "\n")
 
 imdb = IMDB_mlh().to(device)
 imdb.info()
