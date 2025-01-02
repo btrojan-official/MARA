@@ -33,7 +33,7 @@ class MARA(nn.Module):
         self.neuralsparse_2 = NeuralSparse(self.simplification_type, self.NS_k)
         self.neuralsparse_3 = NeuralSparse(self.simplification_type, self.NS_k)
 
-    def forward(self, x, intra_layer_edges, cross_layer_edges):
+    def forward(self, x, node_layers, intra_layer_edges, cross_layer_edges):
 
         # layer lengths are numbers of edges in each layer starting from layer 0 and last element is number of cross-layer edges
         if self.simplification_strategy == "DE":
@@ -53,7 +53,7 @@ class MARA(nn.Module):
 
         elif self.simplification_strategy == "NS":
             if self.simplification_stages == "once":
-                intra_layer_edges, cross_layer_edges, intra_layer_weights, cross_layer_weights = self.neuralsparse_1(x, intra_layer_edges, cross_layer_edges, torch.cat((torch.zeros(len(x)//2), torch.ones(len(x)//2))).to(x.device))
+                intra_layer_edges, cross_layer_edges, intra_layer_weights, cross_layer_weights = self.neuralsparse_1(x, intra_layer_edges, cross_layer_edges, node_layers)
                 h = self.ReLU(self.dropout(self.conv1(x, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T, edge_weight=torch.cat(intra_layer_weights + cross_layer_weights, dim=0))))
                 h = self.ReLU(self.dropout(self.conv2(h, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T, edge_weight=torch.cat(intra_layer_weights + cross_layer_weights, dim=0))))
                 h = self.ReLU(self.dropout(self.conv3(h, torch.cat(intra_layer_edges + cross_layer_edges, dim=0).T, edge_weight=torch.cat(intra_layer_weights + cross_layer_weights, dim=0))))

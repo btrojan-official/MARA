@@ -41,6 +41,9 @@ def get_classess():
             line = line.replace("\n", "").split(" ")
             classes[int(line[0])] = int(line[1])
         return torch.cat((classes,classes),dim=0)
+    
+def get_layers():
+    return torch.cat((torch.zeros(len(get_classess())//2), torch.ones(len(get_classess())//2)))
 
 class IMDB_mlh(torch.utils.data.Dataset):
     def __init__(self):
@@ -48,6 +51,7 @@ class IMDB_mlh(torch.utils.data.Dataset):
         self.nodes = torch.arange(self.node_features.shape[0])
         self.layer_1, self.layer_2, self.cross_edges = get_neighbours()
         self.classes = get_classess()
+        self.node_layers = get_layers()
 
         self.device = "cpu"
 

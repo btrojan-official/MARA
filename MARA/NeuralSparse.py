@@ -16,8 +16,6 @@ class NeuralSparse(nn.Module):
         )
 
     def forward(self, x, intra_layer_edges, cross_layer_edges, node_layers):
-        # muszis cały kod zrefaktoryzować tak, by node_layers zwracała klasa datasetu oraz by odpowiednio wrzucać to do MARY
-
         # upewnij się jak sobie radzi z pustymi edgami
 
         # To check if weights are being trained
@@ -40,7 +38,8 @@ class NeuralSparse(nn.Module):
             gumbel_softmax_weights = F.gumbel_softmax(torch.cat(node_scores, dim=0), tau=self.tau, hard=True).to(x.device)
             for _ in range(self.k-1):
                 # dodaj tutaj maskowanie wcześniej wybranych node-ów
-                gumbel_softmax_weights += F.gumbel_softmax(torch.cat(node_scores, dim=0), tau=self.tau, hard=True).to(x.device)
+                gumbel_softmax_weights += F.gumbel_softmax(torch.cat(node_scores, dim=0), tau=self.tau, hard=True).to(x.device) # torch.cat(node_scores, dim=0)[gumbel_softmax_weights<0.5]
+                print(gumbel_softmax_weights)
 
             node_weights[node] = {
                 "scores": gumbel_softmax_weights,
