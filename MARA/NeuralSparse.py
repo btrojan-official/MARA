@@ -35,16 +35,19 @@ class NeuralSparse(nn.Module):
                 edge_score = self.mlp(torch.cat((x[edge[0],:], x[edge[1],:]), dim=0))
                 node_scores.append(edge_score)
 
-            gumbel_softmax_weights = F.gumbel_softmax(torch.cat(node_scores, dim=0), tau=self.tau, hard=True).to(x.device)
-            for _ in range(self.k-1):
-                # dodaj tutaj maskowanie wcześniej wybranych node-ów
-                gumbel_softmax_weights += F.gumbel_softmax(torch.cat(node_scores, dim=0), tau=self.tau, hard=True).to(x.device) # torch.cat(node_scores, dim=0)[gumbel_softmax_weights<0.5]
-                print(gumbel_softmax_weights)
+            if len(node_scores) == 0:
+                continue
+            else:
+                gumbel_softmax_weights = F.gumbel_softmax(torch.cat(node_scores, dim=0), tau=self.tau, hard=True).to(x.device)
+                for _ in range(min(self.k-1, len(node_scores)-1)):
+                    # dodaj tutaj maskowanie wcześniej wybranych node-ów
+                    mask = [gumbel_softmax_weights<0.5]
+                    gumbel_softmax_weights[mask] += F.gumbel_softmax(torch.cat(node_scores, dim=0)[mask], tau=self.tau, hard=True).to(x.device)
 
-            node_weights[node] = {
-                "scores": gumbel_softmax_weights,
-                "edges": node_edge_map[node]
-            }
+                node_weights[node] = {
+                    "scores": gumbel_softmax_weights,
+                    "edges": node_edge_map[node]
+                }
 
         layers_ids = torch.unique(node_layers, sorted=True)
         num_of_layers = layers_ids.shape[0]
