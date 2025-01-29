@@ -1,4 +1,4 @@
-# MARA
+# MARA - my paper implementation
 
 Original paper: "MARA: A deep learning based framework for multilayer graph simplification" (https://www.sciencedirect.com/science/article/pii/S0925231224014838)
 
