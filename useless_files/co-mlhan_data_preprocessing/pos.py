@@ -1,7 +1,8 @@
+import os
+
 import numpy as np
 import scipy.sparse as sp
 from util.util import sparse_mx_to_torch_sparse_tensor
-import os
 
 
 def get_random_pos(dim, probs):

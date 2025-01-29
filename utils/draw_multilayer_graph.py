@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 
+
 def draw_multilayer_graph(edges_tensor, class_tensor, filename='graph.png'):
     G = nx.Graph()
     

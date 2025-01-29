@@ -2,10 +2,10 @@ import torch
 import torch.nn as nn
 from torch_geometric.nn import GCNConv
 
+from config import config
 from MARA.DropEdge import DropEdge
 from MARA.NeuralSparse import NeuralSparse
 
-from config import config
 
 class MARA(nn.Module):
     def __init__(self, simplification_type=config["simplification_type"], simplification_stages=config["simplification_stages"], simplification_strategy=config["simplification_strategy"], DE_p=config["DE_p"], NS_k=config["NS_k"], dropout=config["dropout"], input_dim=config["input_dim"]):
@@ -35,11 +35,21 @@ class MARA(nn.Module):
             self.dropedge = DropEdge(self.simplification_type, self.DE_p)
         if self.simplification_strategy == "NS":
             self.neuralsparse_1 = NeuralSparse(self.simplification_type, self.NS_k, input_dim=self.input_dim)
-            self.neuralsparse_2 = NeuralSparse(self.simplification_type, 2, input_dim=self.hidden_size_conv1) # self.NS_k
-            self.neuralsparse_3 = NeuralSparse(self.simplification_type, 1, input_dim=self.hidden_size_conv2) # self.NS_k
+            self.neuralsparse_2 = NeuralSparse(self.simplification_type, self.NS_k, input_dim=self.hidden_size_conv1) # self.NS_k
+            self.neuralsparse_3 = NeuralSparse(self.simplification_type, self.NS_k, input_dim=self.hidden_size_conv2) # self.NS_k
 
     def forward(self, x, node_layers, intra_layer_edges, cross_layer_edges):
-        # dorób komentarze na temat kształtów w najważniejszych miejscach
+        """
+        x: node features torch.tensor[number_of_nodes, node_vector_dim]
+        node_layers: node layers torch.tensor[number_of_nodes, 1]
+        intra_layer_edges: intra layer edges list List[torch(tensor[number_of_edges, 2]), ...]
+        cross_layer_edges: cross layer edges list List[torch(tensor[number_of_edges, 2])]
+
+        return:
+        out: new node features torch.tensor[number_of_nodes, node_new_vector_dim]
+        intra_layer_edges: intra layer edges list List[torch(tensor[new_number_of_edges, 2]), ...]
+        cross_layer_edges: cross layer edges list List[torch(tensor[new_number_of_edges, 2])]
+        """
 
         if self.simplification_strategy == "DE":
             if self.simplification_stages == "once":

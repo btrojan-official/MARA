@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class NeuralSparse(nn.Module):
     def __init__(self, simplification_type="multilayer", k=5, input_dim=1000, hidden_dim=128, tau=1.0, anneal_steps=1000):
         super().__init__()
@@ -17,7 +18,8 @@ class NeuralSparse(nn.Module):
 
     def forward(self, x, intra_layer_edges, cross_layer_edges, node_layers):
 
-        # To check if weights are being trained
+        # ============ To check if weights are being trained. =============
+        #
         # for idx, layer in enumerate(self.mlp):
         #     if isinstance(layer, nn.Linear): 
         #         print(f"Layer {idx} weights: {layer.weight.data[0,:10]}")

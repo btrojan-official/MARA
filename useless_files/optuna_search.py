@@ -1,13 +1,12 @@
-import torch
 import optuna
 import optuna.visualization as vis
+import torch
 from torch.utils.tensorboard import SummaryWriter
 
+from config import config
+from MARA.MARA import MARA
 from utils.metrices import roc_auc
 from utils.read_data import IMDB_mlh
-from MARA.MARA import MARA
-
-from config import config
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Working on device: ", device)

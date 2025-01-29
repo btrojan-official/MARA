@@ -1,14 +1,16 @@
 import os
+
 import dgl
 import numpy as np
-import torch
-from input_data.pos import load_pos, identity_pos, get_random_pos
-from util.util import gaussian_distribution, \
-    uniform_distribution, mixed_distribution, exponential_distribution, identity_matrix, \
-    preprocess_features
 import pandas as pd
-from input_data.data_preprocessing import load_number_of_entities
 import scipy.sparse as sp
+import torch
+from input_data.data_preprocessing import load_number_of_entities
+from input_data.pos import get_random_pos, identity_pos, load_pos
+from util.util import (exponential_distribution, gaussian_distribution,
+                       identity_matrix, mixed_distribution,
+                       preprocess_features, uniform_distribution)
+
 root = './data/'
 prep = 'prep_data/'
 

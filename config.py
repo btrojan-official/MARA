@@ -3,7 +3,7 @@ config = {
     "simplification_stages":"each", # ["once","each"]
     "simplification_strategy":"NS", # ["DE","NS"] (DropEdge/NeuralSparse)
     "DE_p":0.4,
-    "NS_k":5,
+    "NS_k":1,
     "dropout":0.001,
     "input_dim": 1000,
 

@@ -2,6 +2,7 @@ import torch
 
 from utils.draw_multilayer_graph import draw_multilayer_graph
 
+
 def graph_info(node_classes, node_layers, intra_edges, cross_edges):
     edges_per_layer = [intra_edges[i].shape[0] for i in range(len(intra_edges))]
     edges_cross_layer = [cross_edges[i].shape[0] for i in range(len(cross_edges))]

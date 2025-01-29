@@ -1,5 +1,7 @@
-import torch
 import dgl
+import torch
+
+
 def get_neighbours():
     MAM0_src, MAM0_dst = dgl.load_graphs("data/imdb_mlh/prep_data/MAM_0.bin")[0][0].edges()
     MAM1_src, MAM1_dst = dgl.load_graphs("data/imdb_mlh/prep_data/MAM_1.bin")[0][0].edges()

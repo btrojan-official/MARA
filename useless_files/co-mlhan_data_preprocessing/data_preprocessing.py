@@ -2,17 +2,18 @@
 Script for data pre-preprocessing in CO-MLHAN
 """
 
-import os
-import pandas as pd
-import numpy as np
 import argparse
-import dgl
-import scipy as sp
-import torch
+import math
+import os
 import shutil
 import traceback
-import math
 from pathlib import Path
+
+import dgl
+import numpy as np
+import pandas as pd
+import scipy as sp
+import torch
 
 root = '../data/'
 prep = 'prep_data'

@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class DropEdge(nn.Module):
     def __init__(self, simplification_type="l-b-l", p=0.2):
         super().__init__()

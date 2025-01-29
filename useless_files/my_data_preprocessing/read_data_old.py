@@ -1,5 +1,6 @@
 import torch
 
+
 def get_neighbours():
     with open("data/imdb_mlh/positives.txt", "r") as input_file:
         layer_1 = []
